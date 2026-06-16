@@ -1,0 +1,287 @@
+================================================================================
+PROJET PIM : STOCKAGE ET EXPLOITATION DE TABLES DE ROUTAGE
+RAFFINAGE DU ROUTEUR SIMPLE (SANS CACHE)
+================================================================================
+
+--------------------------------------------------------------------------------
+R0 : Problème global
+--------------------------------------------------------------------------------
+Rôle : Simuler le comportement d'un routeur réseau simple en traitant un flux
+       de paquets et de commandes à partir d'une table de routage statique.
+
+
+--------------------------------------------------------------------------------
+R1 : Décomposition de R0
+--------------------------------------------------------------------------------
+Comment « Traiter l'ensemble du routage » ?
+    1. Initialiser le routeur (arguments et fichiers)
+    2. Charger la table de routage depuis le fichier
+    3. Traiter le flux des paquets et des commandes
+    4. Libérer la mémoire et fermer les fichiers
+
+
+--------------------------------------------------------------------------------
+R2 : Décomposition des actions de R1
+--------------------------------------------------------------------------------
+
+R2 : Comment « Initialiser le routeur (arguments et fichiers) » ?
+    Flots de données :
+        Sorties : Fichier_Table, Fichier_Paquets, Fichier_Resultats : T_Fichier
+        Sorties : Taille_Cache : Entier
+        Sorties : Politique : T_Politique
+        Sorties : Afficher_Stats : Boéleen
+    Algorithme :
+        Analyser_Ligne_Commande(Taille_Cache, Politique, Afficher_Stats, Nom_F_Table, Nom_F_Paquets, Nom_F_Resultats)
+        Ouvrir_Lecture(Fichier_Table, Nom_F_Table)
+        Ouvrir_Lecture(Fichier_Paquets, Nom_F_Paquets)
+        Ouvrir_Ecriture(Fichier_Resultats, Nom_F_Resultats)
+
+R2 : Comment « Charger la table de routage depuis le fichier » ?
+    Flots de données :
+        Entrées : Fichier_Table : T_Fichier
+        Sorties : Table : T_Table_Routage
+    Algorithme :
+        Initialiser_Table_Vide(Table)
+        Tant que non Fin_De_Fichier(Fichier_Table) faire
+            Lire_Ligne_Table(Fichier_Table, Adresse, Masque, Interface)
+            Ajouter_Route(Table, Adresse, Masque, Interface)
+        Fin Tant que
+
+R2 : Comment « Traiter le flux des paquets et des commandes » ?
+    Flots de données :
+        Entrées/Sorties : Fichier_Paquets, Fichier_Resultats : T_Fichier
+        Entrées : Table : T_Table_Routage
+        Entrées : Afficher_Stats : Boéleen
+    Algorithme :
+        Tant que non Fin_De_Fichier(Fichier_Paquets) faire
+            Lire_Ligne_Paquets(Fichier_Paquets, Type_Element, Ligne_Brute)
+            Si Type_Element = COMMANDE alors
+                Executer_Commande(Ligne_Brute, Table, Afficher_Stats)
+            Sinon Si Type_Element = ADRESSE_IP alors
+                Router_Paquet(Ligne_Brute, Table, Fichier_Resultats)
+            Fin Si
+        Fin Tant que
+
+R2 : Comment « Libérer la mémoire et fermer les fichiers » ?
+    Flots de données :
+        Entrées/Sorties : Fichier_Table, Fichier_Paquets, Fichier_Resultats : T_Fichier
+        Entrées/Sorties : Table : T_Table_Routage
+    Algorithme :
+        Vider_Table(Table)
+        Fermer(Fichier_Table)
+        Fermer(Fichier_Paquets)
+        Fermer(Fichier_Resultats)
+
+
+--------------------------------------------------------------------------------
+R3 : Décomposition des actions complexes de R2
+--------------------------------------------------------------------------------
+
+R3 : Comment « Router_Paquet (Règle du masque le plus long) » ?
+    Flots de données :
+        Entrées : IP_Destination : T_Adresse_IP
+        Entrées : Table : T_Table_Routage
+        Entrées/Sorties : Fichier_Resultats : T_Fichier
+    Algorithme :
+        Longueur_Masque_Max <- -1
+        Interface_Trouvee <- "Inconnue"
+        Courant <- Table
+
+        Tant que Courant /= Nul faire
+            -- Vérifier si l'IP correspond à la route via le masque
+            Si (IP_Destination ET Courant.Masque) = (Courant.Adresse_Base ET Courant.Masque) alors
+                -- Application de la règle du masque le plus précis (le plus long)
+                Si Courant.Longueur_Masque > Longueur_Masque_Max alors
+                    Longueur_Masque_Max <- Courant.Longueur_Masque
+                    Interface_Trouvee <- Courant.Interface
+                Fin Si
+            Fin Si
+            Courant <- Courant.Suivant
+        Fin Tant que
+
+        Enregistrer_Resultat(Fichier_Resultats, IP_Destination, Interface_Trouvee)
+
+R3 : Comment « Executer_Commande » ?
+    Flots de données :
+        Entrées : Commande : Chaine
+        Entrées : Table : T_Table_Routage
+        Entrées : Afficher_Stats : Boéleen
+    Algorithme :
+        Selon que Commande vaut :
+            "table" : 
+                Afficher_Table_Complete(Table)
+            "stat"  : 
+                Si Afficher_Stats alors
+                    Afficher_Statistiques_Routeur()
+                Fin Si
+            "fin"   : 
+                -- Interrompt proprement la lecture en simulant une fin de fichier
+                Forcer_Fin_Flux() 
+            Autrement :
+                Afficher_Erreur("Commande inconnue")
+        Fin Selon
+
+
+--------------------------------------------------------------------------------
+STRUCTURES DE DONNÉES IDENTIFIÉES
+--------------------------------------------------------------------------------
+Type T_Adresse_IP = Entier Non Signé 32 bits
+
+Type T_Cellule_Table = Enregistrement
+    Adresse_Base    : T_Adresse_IP
+    Masque          : T_Adresse_IP
+    Longueur_Masque : Entier
+    Interface       : Chaine de caractères
+    Suivant         : T_Table_Routage
+Fin Enregistrement
+
+Type T_Table_Routage = Pointe sur T_Cellule_Table
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PIM : Projet Routeur Simple
+
+Raffinages 1
+Évaluation des raffinages par l’étudiant 2
+Remarques diverses 2
+Évaluation du code 3
+
+Raffinages
+
+R0 : Simuler un routeur réseau simple (sans cache)
+
+R1 : Comment “Simuler un routeur réseau simple (sans cache)” ?
+Initialiser les options de la ligne de commande et les fichiers
+taille_cache: entier out
+politique: caractere out
+statistiques: boolean out
+Charger la table de routage initiale
+table_routage: liste_chainee out
+Traiter le flux des paquets et des commandes
+table_routage: liste_chainee in
+statistiques: boolean in
+Fermer les fichiers et libérer la mémoire
+table_routage: liste_chainee in out
+
+R2 : Comment “Initialiser les options de la ligne de commande et les fichiers” ?
+Analyser les arguments de la ligne de commande
+taille_cache: entier out
+politique: caractere out
+statistiques: boolean out
+nom_fichier_table: chaine out
+nom_fichier_paquets: chaine out
+nom_fichier_resultats: chaine out
+Ouvrir le fichier de la table en lecture
+fichier_table: fichier out
+Ouvrir le fichier des paquets en lecture
+fichier_paquets: fichier out
+Ouvrir le fichier des résultats en écriture
+fichier_resultats: fichier out
+
+R2: Comment “Charger la table de routage initiale” ?
+Initialiser la table de routage à vide
+table_routage: liste_chainee out
+Tant que non Fin_De_Fichier(fichier_table) Faire
+Lire une ligne du fichier table
+adresse_ip: entier out
+masque: entier out
+interface: chaine out
+Insérer la route à la fin de la table de routage
+table_routage: liste_chainee in out
+FinTQ
+
+R2 : Comment “Traiter le flux des paquets et des commandes” ?
+Tant que non Fin_De_Fichier(fichier_paquets) et non fin_demandee Faire
+Lire une ligne du fichier paquets
+ligne_lue: chaine out
+type_ligne: caractere out
+Si type_ligne = 'commande' Alors
+Exécuter la commande demandée
+ligne_lue: chaine in
+table_routage: liste_chainee in
+statistiques: boolean in
+fin_demandee: boolean out
+Sinon
+Router le paquet selon le masque le plus long
+ligne_lue: chaine in
+table_routage: liste_chainee in
+fichier_resultats: fichier in out
+Fin Si
+FinTQ
+
+R3: Comment “Exécuter la commande demandée” ?
+Selon ligne_lue Dans
+"table" => Afficher le contenu de la table de routage
+table_routage: liste_chainee in
+"stat" => Afficher les statistiques si l'option est activée
+statistiques: boolean in
+"fin" => fin_demandee <-- Vrai
+fin_demandee: boolean out
+Autre => Ecrire("Commande non reconnue")
+FinSelon
+
+R3: Comment “Router le paquet selon le masque le plus long” ?
+Initialiser la recherche
+masque_max: entier out
+interface_trouvee: chaine out
+Parcourir la table de routage pour trouver la meilleure correspondance
+adresse_paquet: entier in
+table_routage: liste_chainee in
+masque_max: entier in out
+interface_trouvee: chaine in out
+Écrire le résultat dans le fichier de sortie
+adresse_paquet: entier in
+interface_trouvee: chaine in
+fichier_resultats: fichier in out
+
+R4: Comment “Parcourir la table de routage pour trouver la meilleure correspondance” ?
+courant <-- table_routage
+Tant que courant /= Null Faire
+Vérifier si l'adresse correspond à la route
+correspondance: boolean out
+adresse_paquet: entier in
+masque_courant: entier in
+adresse_route: entier in
+Si correspondance Alors
+Si longueur_masque_courant > masque_max Alors
+masque_max <-- longueur_masque_courant
+interface_trouvee <-- interface_courante
+Fin Si
+Fin Si
+courant <-- courant.suivant
+FinTQ
+
+R5: Comment “Vérifier si l'adresse correspond à la route” ?
+Si (adresse_paquet ET masque_courant) = (adresse_route ET masque_courant) Alors
+correspondance <-- Vrai
+Sinon
+correspondance <-- Faux
+Fin Si
+
+Évaluation des raffinages par l’étudiant

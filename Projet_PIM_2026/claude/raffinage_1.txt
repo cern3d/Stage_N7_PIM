@@ -1,0 +1,275 @@
+# Raffinages — Routeur PR3
+
+---
+
+## R0 — Action principale
+
+```
+R0 : Stocker une table de routage et router des paquets IP en utilisant
+     un cache (liste chaînée ou arbre préfixe) avec une politique FIFO, LRU ou LFU.
+```
+
+**Exemples :**
+
+| Fichier table | Paquet destination | Interface attendue |
+|---|---|---|
+| `147.127.18.0 255.255.255.0 eth1` | `147.127.18.80` | `eth1` |
+| `0.0.0.0 0.0.0.0 eth0` | `8.8.8.8` | `eth0` (route par défaut) |
+| Cache plein, nouvelle route | éviction selon politique | selon FIFO/LRU/LFU |
+
+---
+
+## R1 — Décomposition de R0
+
+```
+R1 : Comment << Stocker une table de routage et router des paquets >> ?
+
+    Analyser la ligne de commande                      Options : out
+    { Options.Taille_Cache >= 0 ET Options.Politique IN {FIFO, LRU, LFU} }
+
+    Charger la table de routage depuis Options.Fichier_Table   Options : in ; Table : out
+    { Table contient toutes les routes du fichier, liste chaînée non vide }
+
+    Initialiser le cache de taille Options.Taille_Cache        Options : in ; Cache : out
+    { Cache vide, taille fixée, politique mémorisée, statistiques à zéro }
+
+    Traiter les paquets depuis Options.Fichier_Paquets          Table, Cache, Options : in out
+    { Tous les paquets routés, résultats écrits dans Options.Fichier_Resultats }
+
+    SI Options.Afficher_Stats ALORS                             Cache : in
+        Afficher les statistiques du cache
+    FIN SI
+
+    Libérer Table et Cache                                      Table, Cache : in out
+    { Toute la mémoire dynamique allouée est libérée }
+```
+
+---
+
+## R2 — Décomposition de « Analyser la ligne de commande »
+
+```
+R2 : Comment << Analyser la ligne de commande >> ?
+
+    Options <-- valeurs par défaut
+    { Options.Taille_Cache = 10, Options.Politique = FIFO,
+      Options.Afficher_Stats = vrai,
+      Options.Fichier_Table = "table.txt",
+      Options.Fichier_Paquets = "paquets.txt",
+      Options.Fichier_Resultats = "resultats.txt" }
+
+    i <-- 1
+    TANT QUE i <= Argument_Count FAIRE
+        { Variant : Argument_Count - i }
+        SELON Argument(i) FAIRE
+            "-c" --> Options.Taille_Cache <-- Entier(Argument(i+1))  ;  i <-- i + 2
+            "-p" --> Options.Politique    <-- Lire_Politique(Argument(i+1))  ;  i <-- i + 2
+            "-s" --> Options.Afficher_Stats <-- vrai  ;  i <-- i + 1
+            "-S" --> Options.Afficher_Stats <-- faux  ;  i <-- i + 1
+            "-t" --> Options.Fichier_Table    <-- Argument(i+1)  ;  i <-- i + 2
+            "-q" --> Options.Fichier_Paquets  <-- Argument(i+1)  ;  i <-- i + 2
+            "-r" --> Options.Fichier_Resultats<-- Argument(i+1)  ;  i <-- i + 2
+            sinon --> lever exception Argument_Inconnu
+        FIN SELON
+    FIN TANT QUE
+    { Options contient les valeurs issues de la dernière apparition de chaque option }
+```
+
+---
+
+## R2 — Décomposition de « Charger la table de routage »
+
+```
+R2 : Comment << Charger la table de routage depuis Fichier_Table >> ?
+
+    Ouvrir Fichier_Table en lecture --> F           Fichier_Table : in ; F : out
+    { F est ouvert en lecture }
+
+    Table <-- liste vide                            Table : out
+
+    TANT QUE NON Fin_De_Fichier(F) FAIRE
+        { Variant : nombre de lignes restantes dans F }
+        Lire_Ligne(F) --> Ligne                     F : in out ; Ligne : out
+        Parser_Route(Ligne) --> (Destination, Masque, Interface)
+                                                    Ligne : in ; Destination, Masque, Interface : out
+        { (Destination AND Masque) = Destination ET Masque valide }
+        Insérer (Destination, Masque, Interface) en tête de Table
+                                                    Table : in out
+    FIN TANT QUE
+
+    Fermer F                                        F : in out
+    { Table contient toutes les routes du fichier }
+```
+
+---
+
+## R2 — Décomposition de « Traiter les paquets »
+
+```
+R2 : Comment << Traiter les paquets depuis Fichier_Paquets >> ?
+
+    Ouvrir Fichier_Paquets en lecture  --> F_Paq    Options : in ; F_Paq : out
+    Ouvrir Fichier_Resultats en écriture --> F_Res  Options : in ; F_Res : out
+    Fin <-- faux                                    Fin : out
+
+    TANT QUE NON Fin_De_Fichier(F_Paq) ET NON Fin FAIRE
+        { Variant : nombre de lignes restantes dans F_Paq }
+        Lire_Ligne(F_Paq) --> Ligne                 F_Paq : in out ; Ligne : out
+        Num_Ligne <-- Numero_Ligne_Courante(F_Paq)  F_Paq : in ; Num_Ligne : out
+
+        SI Ligne est une commande ALORS
+            Exécuter_Commande(Ligne, Num_Ligne, Table, Cache) --> Fin
+                                Table, Cache : in ; Fin : out
+        SINON
+            Parser_Adresse_IP(Ligne) --> Destination
+                                Ligne : in ; Destination : out
+            Router_Paquet(Destination, Table, Cache) --> Interface
+                                Destination : in ; Table, Cache : in out ; Interface : out
+            Écrire Destination & " " & Interface dans F_Res
+                                Destination, Interface, F_Res : in out
+        FIN SI
+    FIN TANT QUE
+
+    Fermer F_Paq, F_Res
+    { Tous les paquets traités avant "fin" sont routés et écrits dans F_Res }
+```
+
+---
+
+## R2 — Décomposition de « Router_Paquet »
+
+```
+R2 : Comment << Router un paquet de destination Destination >> ?
+
+    Stats.Nb_Demandes <-- Stats.Nb_Demandes + 1     Stats : in out
+
+    SI Options.Taille_Cache > 0 ALORS
+        Chercher Destination dans Cache --> (Trouvé, Interface)
+                                Cache : in out ; Trouvé : out ; Interface : out
+        SI Trouvé ALORS
+            Mettre_A_Jour_Cache(Destination, Cache)  Cache : in out
+            { Pour LRU : déplacer en tête ; pour LFU : incrémenter compteur }
+            RETOURNER Interface
+        FIN SI
+    FIN SI
+
+    { Défaut de cache }
+    Stats.Nb_Defauts <-- Stats.Nb_Defauts + 1       Stats : in out
+
+    Chercher_LPM(Destination, Table) --> (Interface, Masque_Selectionne)
+                                Destination : in ; Table : in ;
+                                Interface : out ; Masque_Selectionne : out
+    { Masque_Selectionne est le masque le plus long tel que
+      (Destination AND Masque_Selectionne) = (Dest_Route AND Masque_Selectionne) }
+
+    SI Options.Taille_Cache > 0 ALORS
+        Calculer_Route_Cache(Destination, Interface, Table) --> Route_Cache
+                                Destination, Interface, Table : in ; Route_Cache : out
+        Insérer_Dans_Cache(Route_Cache, Cache)   Cache : in out
+        { Si Cache plein : appliquer la politique avant insertion }
+    FIN SI
+
+    RETOURNER Interface
+    { Interface est l'interface de sortie pour Destination }
+```
+
+---
+
+## R2 — Décomposition de « Chercher_LPM »
+
+```
+R2 : Comment << Chercher la route par plus long préfixe pour Destination >> ?
+
+    Interface_Trouvée <-- ""                         Interface_Trouvée : out
+    Masque_Max <-- 0                                 Masque_Max : out
+    Courant <-- Tête(Table)                          Table : in ; Courant : out
+
+    TANT QUE Courant /= null FAIRE
+        { Variant : longueur du sous-liste à partir de Courant }
+        { Invariant : Interface_Trouvée est l'interface du masque le plus long
+          correspondant à Destination parmi les routes déjà examinées }
+
+        SI (Destination AND Masque(Courant)) = (Dest(Courant) AND Masque(Courant)) ALORS
+            SI Masque(Courant) >= Masque_Max ALORS
+                Interface_Trouvée <-- Interface(Courant)
+                Masque_Max        <-- Masque(Courant)
+            FIN SI
+        FIN SI
+
+        Courant <-- Suivant(Courant)
+    FIN TANT QUE
+
+    { Interface_Trouvée est l'interface du masque le plus long correspondant,
+      Masque_Max est ce masque (0 si aucune route trouvée) }
+```
+
+---
+
+## R2 — Décomposition de « Calculer_Route_Cache »
+
+```
+R2 : Comment << Calculer la route à insérer en cache pour Destination, Interface >> ?
+
+    { Objectif : trouver le masque le plus long discriminant Destination
+      de toutes les routes d'interface différente, pour éviter les faux hits }
+
+    Masque_Disc <-- Masque_Selectionne               Masque_Disc : out
+
+    TANT QUE il existe une route R dans Table telle que Interface(R) /= Interface
+              ET (Destination AND Masque_Disc) = (Dest(R) AND Masque_Disc) FAIRE
+        { Variant : nombre de routes de Table non encore discriminées }
+        Masque_Disc <-- Masque_Discriminant(Destination, Dest(R))
+                                Destination, Dest(R) : in ; Masque_Disc : in out
+        { Masque_Disc est le plus court masque distinguant Destination de Dest(R) }
+    FIN TANT QUE
+
+    Dest_Cache <-- Destination AND Masque_Disc       Destination, Masque_Disc : in ; Dest_Cache : out
+
+    Route_Cache <-- (Dest_Cache, Masque_Disc, Interface)
+    { Route_Cache peut être insérée en cache sans risque de faux hit futur }
+```
+
+---
+
+## R2 — Décomposition de « Insérer_Dans_Cache »
+
+```
+R2 : Comment << Insérer Route_Cache dans Cache (avec politique si plein) >> ?
+
+    SI Cache_Plein(Cache) ALORS                      Cache : in
+        SELON Options.Politique FAIRE
+            FIFO --> Supprimer_Premier_Insere(Cache)
+                     { Retire l'élément en queue de liste (le plus ancien) }
+            LRU  --> Supprimer_Moins_Recemment_Utilise(Cache)
+                     { Retire l'élément en queue (liste ordonnée par accès récent) }
+            LFU  --> Supprimer_Moins_Frequemment_Utilise(Cache)
+                     { Cherche et retire l'élément de compteur d'accès minimal }
+        FIN SELON
+    FIN SI
+
+    Ajouter Route_Cache en tête de Cache             Cache : in out
+    { Cache contient Route_Cache ; sa taille est <= Options.Taille_Cache }
+```
+
+---
+
+## R2 — Décomposition de « Exécuter_Commande »
+
+```
+R2 : Comment << Exécuter la commande Ligne lue à la ligne Num_Ligne >> ?
+
+    Afficher une ligne vide sur la sortie standard
+    Afficher Ligne & " (ligne " & Num_Ligne & ")" sur la sortie standard
+
+    SELON Ligne FAIRE
+        "table" --> Afficher toutes les routes de Table    Table : in
+                    { Pour chaque nœud : Dest Masque Interface }
+        "cache" --> Afficher toutes les routes de Cache    Cache : in
+                    { Pour chaque nœud : Dest Masque Interface }
+        "stat"  --> Afficher_Statistiques(Cache)           Cache : in
+                    { Nb_Demandes, Nb_Defauts, Taux = Nb_Defauts / Nb_Demandes }
+        "fin"   --> Fin <-- vrai                           Fin : out
+        sinon   --> ignorer
+    FIN SELON
+    { Fin = vrai ssi la commande était "fin" }
+```
