@@ -50,14 +50,14 @@ procedure Routeur_LL is
       First, Last : Integer;
    begin
       First := S'First;
-      while First <= S'Last and then S(First) = ' ' loop
+      while First <= S'Last and then (S(First) = ' ' or S(First) = ASCII.CR or S(First) = ASCII.LF) loop
          First := First + 1;
       end loop;
       if First > S'Last then
          return "";
       end if;
       Last := S'Last;
-      while Last >= First and then S(Last) = ' ' loop
+      while Last >= First and then (S(Last) = ' ' or S(Last) = ASCII.CR or S(Last) = ASCII.LF) loop
          Last := Last - 1;
       end loop;
       return S(First..Last);
@@ -356,17 +356,20 @@ begin
             Put_Line("fin (ligne " & Integer'Image(Line_Num)(Integer'Image(Line_Num)'First+1..Integer'Image(Line_Num)'Last) & ")");
             exit;
          else
-            -- packet to route
-            Requests := Requests + 1;
-            IP := Parse_IP(To_String(S_UB));
-            Iface_UB := To_Unbounded_String(Trim_Line(Find_Interface(IP)));
-            if Length(Iface_UB) = 0 then
-               null; -- no route found
+            -- Check if it's a known command (in case recognition fails)
+            if To_String(S_UB) /= "table" and To_String(S_UB) /= "cache" and To_String(S_UB) /= "stat" and To_String(S_UB) /= "fin" then
+               -- packet to route
+               Requests := Requests + 1;
+               IP := Parse_IP(To_String(S_UB));
+               Iface_UB := To_Unbounded_String(Trim_Line(Find_Interface(IP)));
+               if Length(Iface_UB) = 0 then
+                  null; -- no route found
+               end if;
+               Put_Line(To_String(S_UB) & " " & To_String(Iface_UB));
+               Put(RFile, To_String(S_UB) & " " & To_String(Iface_UB));
+               New_Line(RFile);
+               Cache_Misses := Cache_Misses + 1;
             end if;
-            Put_Line(To_String(S_UB) & " " & To_String(Iface_UB));
-            Put(RFile, To_String(S_UB) & " " & To_String(Iface_UB));
-            New_Line(RFile);
-            Cache_Misses := Cache_Misses + 1;
          end if;
    end loop;
    Close(PFile);
@@ -378,3 +381,16 @@ exception
       raise;
 end Routeur_LL;
 
+--  x86_64-linux-gnu-gcc-13 -c -gnatwa routeur_LL.adb
+--  routeur_LL.adb:5:11: warning: file name does not match unit name, should be "routeur_ll.adb" [enabled by default]
+--  routeur_LL.adb:26:04: warning: variable "Cache_Size" is assigned but never read [-gnatwm]
+--  routeur_LL.adb:27:04: warning: variable "Policy" is assigned but never read [-gnatwm]
+--  routeur_LL.adb:28:04: warning: variable "Show_Stats" is assigned but never read [-gnatwm]
+--  routeur_LL.adb:35:04: warning: variable "Cache_Hits" is not referenced [-gnatwu]
+--  routeur_LL.adb:126:07: warning: "A" is not modified, could be declared constant [-gnatwk]
+--  routeur_LL.adb:127:07: warning: "B" is not modified, could be declared constant [-gnatwk]
+--  routeur_LL.adb:128:07: warning: "C" is not modified, could be declared constant [-gnatwk]
+--  routeur_LL.adb:129:07: warning: "D" is not modified, could be declared constant [-gnatwk]
+--  routeur_LL.adb:153:07: warning: "New_Node" is not modified, could be declared constant [-gnatwk]
+--  x86_64-linux-gnu-gnatbind-13 -x routeur_LL.ali
+--  x86_64-linux-gnu-gnatlink-13 routeur_LL.ali
