@@ -1,0 +1,108 @@
+V "GNAT Lib v13"
+A -gnata
+A -gnatwa
+A -g
+P SS ZX
+
+RN
+RV NO_ALLOCATORS
+RV NO_ANONYMOUS_ALLOCATORS
+RV NO_EXCEPTIONS
+RV NO_IO
+RV NO_LOCAL_ALLOCATORS
+RV NO_SECONDARY_STACK
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_DYNAMIC_SIZED_OBJECTS
+
+U parametres%b		parametres.adb		2b10d4ff NE OO PK
+W ada%s			ada.ads			ada.ali
+W ada.command_line%s	a-comlin.adb		a-comlin.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+W ada.text_io%s		a-textio.adb		a-textio.ali
+Z system.concat_2%s	s-conca2.adb		s-conca2.ali
+Z system.concat_3%s	s-conca3.adb		s-conca3.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+Z system.val_int%s	s-valint.ads		s-valint.ali
+
+U parametres%s		parametres.ads		dede3961 EE NE OO PK
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+
+D ada.ads		20240521074738 76789da1 ada%s
+D a-comlin.ads		20240521074737 4aa66568 ada.command_line%s
+D a-except.ads		20240521074738 2a7d8d70 ada.exceptions%s
+D a-ioexce.ads		20240521074738 40018c65 ada.io_exceptions%s
+D a-stream.ads		20240521074738 119b8fb3 ada.streams%s
+D a-string.ads		20240521074738 90ac6797 ada.strings%s
+D a-sttebu.ads		20240521074738 f1ad67a2 ada.strings.text_buffers%s
+D a-stuten.ads		20240521074738 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20240521074738 9eaa38c6 ada.tags%s
+D a-textio.ads		20240521074738 5c2c6153 ada.text_io%s
+D a-unccon.ads		20240521074738 0e9b276f ada.unchecked_conversion%s
+D interfac.ads		20240521074738 15f799c2 interfaces%s
+D i-cstrea.ads		20240521074738 e53d8b8e interfaces.c_streams%s
+D parametres.ads	20260618085653 dede3961 parametres%s
+D parametres.adb	20260618085653 e344e9a5 parametres%b
+D system.ads		20240521074738 426dafb8 system%s
+D s-casuti.ads		20240521074738 cf13d755 system.case_util%s
+D s-conca2.ads		20240521074738 b5fb73f7 system.concat_2%s
+D s-conca3.ads		20240521074738 8a7a19a2 system.concat_3%s
+D s-crtl.ads		20240521074738 8a0692f8 system.crtl%s
+D s-exctab.ads		20240521074738 91bef6ef system.exception_table%s
+D s-ficobl.ads		20240521074738 dc5161d4 system.file_control_block%s
+D s-parame.ads		20251218205951 1f39ba92 system.parameters%s
+D s-putima.ads		20240521074738 17291fe4 system.put_images%s
+D s-secsta.ads		20240521074738 578279f5 system.secondary_stack%s
+D s-soflin.ads		20240521074738 df77073e system.soft_links%s
+D s-stache.ads		20240521074738 0b81c1fe system.stack_checking%s
+D s-stalib.ads		20240521074738 1c9580f6 system.standard_library%s
+D s-stoele.ads		20240521074738 ab5468e4 system.storage_elements%s
+D s-stoele.adb		20240521074738 8f5a9db6 system.storage_elements%b
+D s-traent.ads		20240521074738 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20240521074738 fa2a7f59 system.unsigned_types%s
+D s-valint.ads		20240521074738 1f610d7a system.val_int%s
+D s-valuns.ads		20240521074738 e8a1f424 system.val_uns%s
+D s-valuti.ads		20240521074738 fcd603d8 system.val_util%s
+D s-valuei.ads		20240521074738 11081e09 system.value_i%s
+D s-vaispe.ads		20240521074738 44130d39 system.value_i_spec%s
+D s-valueu.ads		20240521074738 18770347 system.value_u%s
+D s-vauspe.ads		20240521074738 a67b2f28 system.value_u_spec%s
+D s-wchcon.ads		20240521074738 d9032363 system.wch_con%s
+G a e
+G c Z s b [analyser parametres 21 14 none]
+G c Z s s [t_parametresIP parametres 10 9 none]
+X 1 ada.ads
+16K9*Ada 20e8 15|1r6 1r29 2r6 2r29
+X 2 a-comlin.ads
+36K13*Command_Line 144e21 15|1w10 1r33
+39V13*Argument_Count{natural} 15|15s17 37s18
+52V13*Argument{string} 15|21s36 39s38
+X 10 a-textio.ads
+58K13*Text_IO 787e16 15|2w10 2r33
+66P9*File_Type
+188V13*Standard_Error{66P9} 15|16s23 54s32 77s26
+555U14*Put_Line 15|16s13 54s22 77s16
+X 14 parametres.ads
+4K9*Parametres 23l5 23e15 15|4b14 84l5 84t15
+7E9*T_Politique 7e40 12r27
+7n25*FIFO{7E9} 12r43 15|31r35 50r63
+7n31*LRU{7E9} 15|51r63
+7n36*LFU{7E9} 15|52r63
+10R9*T_Parametres 17e14 21r37 15|9r37
+11i7*Taille_Cache{natural} 15|30m14 44m23
+12e7*Politique{7E9} 15|31m14 50m50 51m50 52m50
+13b7*Afficher_Stats{boolean} 15|32m14 62m23 65m23
+14p7*Fichier_Table(string) 15|33m14 68m23
+15p7*Fichier_Paquets(string) 15|34m14 71m23
+16p7*Fichier_Resultats(string) 15|35m14 74m23
+21U14*Analyser 21<24 15|9b14 82l8 82t16
+21r24 Params{10R9} 15|9b24 30m7 31m7 32m7 33m7 34m7 35m7 44m16 50m43 51m43
+. 52m43 62m16 65m16 68m16 71m16 74m16
+X 15 parametres.adb
+10i7 I{positive} 15r13 21r46 23m13 23r18 37r13 39r48 41m13 41r18
+13V16 Arg_Suivant{string} 13b16 13>29 26l11 26t22 44s54 48s44 68s52 71s54
+. 74s56
+13a29 Option{string} 17r35
+21a13 S{string} 24r20
+39a13 Opt{string} 43r19 46r19 61r19 64r19 67r19 70r19 73r19 77r65
+48a19 Pol{string} 50r25 51r25 52r25 55r58
+

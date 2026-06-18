@@ -1,0 +1,109 @@
+V "GNAT Lib v13"
+A -gnata
+A -gnatwa
+A -g
+P SS ZX
+
+RN
+RV NO_SECONDARY_STACK
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_DYNAMIC_SIZED_OBJECTS
+
+U adresses_ip%b		adresses_ip.adb		be545e52 NE OO PK
+W ada%s			ada.ads			ada.ali
+W ada.strings%s		a-string.ads		a-string.ali
+W ada.strings.fixed%s	a-strfix.adb		a-strfix.ali
+Z system.assertions%s	s-assert.adb		s-assert.ali
+Z system.concat_7%s	s-conca7.adb		s-conca7.ali
+Z system.img_uns%s	s-imguns.ads		s-imguns.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+Z system.unsigned_types%s  s-unstyp.ads		s-unstyp.ali
+
+U adresses_ip%s		adresses_ip.ads		fc79d9cc EE NE OO PK
+
+D ada.ads		20240521074738 76789da1 ada%s
+D a-assert.ads		20240521074737 ba465f5c ada.assertions%s
+D a-charac.ads		20240521074737 2d3ec45b ada.characters%s
+D a-chlat1.ads		20240521074737 e0d72e76 ada.characters.latin_1%s
+D a-except.ads		20240521074738 2a7d8d70 ada.exceptions%s
+D a-numeri.ads		20240521074738 84bea7a3 ada.numerics%s
+D a-nubinu.ads		20240521074738 93f1f3d1 ada.numerics.big_numbers%s
+D a-nbnbig.ads		20240521074738 711e0174 ada.numerics.big_numbers.big_integers_ghost%s
+D a-string.ads		20240521074738 90ac6797 ada.strings%s
+D a-strfix.ads		20240521074738 d8832344 ada.strings.fixed%s
+D a-strmap.ads		20240521074738 ed8acfdb ada.strings.maps%s
+D a-strsea.ads		20240521074738 2d394feb ada.strings.search%s
+D a-unccon.ads		20240521074738 0e9b276f ada.unchecked_conversion%s
+D adresses_ip.ads	20260618085653 fc79d9cc adresses_ip%s
+D adresses_ip.adb	20260618085653 0a02c34d adresses_ip%b
+D system.ads		20240521074738 426dafb8 system%s
+D s-assert.ads		20240521074738 9c4520c7 system.assertions%s
+D s-casuti.ads		20240521074738 cf13d755 system.case_util%s
+D s-conca7.ads		20240521074738 09fd419f system.concat_7%s
+D s-exctab.ads		20240521074738 91bef6ef system.exception_table%s
+D s-imageu.ads		20240521074738 631c6ed0 system.image_u%s
+D s-imguns.ads		20240521074738 7867236f system.img_uns%s
+D s-parame.ads		20251218205951 1f39ba92 system.parameters%s
+D s-secsta.ads		20240521074738 578279f5 system.secondary_stack%s
+D s-stalib.ads		20240521074738 1c9580f6 system.standard_library%s
+D s-stoele.ads		20240521074738 ab5468e4 system.storage_elements%s
+D s-traent.ads		20240521074738 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20240521074738 fa2a7f59 system.unsigned_types%s
+D s-valuns.ads		20240521074738 e8a1f424 system.val_uns%s
+D s-valuti.ads		20240521074738 fcd603d8 system.val_util%s
+D s-valueu.ads		20240521074738 18770347 system.value_u%s
+D s-vauspe.ads		20240521074738 a67b2f28 system.value_u_spec%s
+D s-widuns.ads		20240521074738 866a5800 system.wid_uns%s
+D s-widthu.ads		20240521074738 b32f15e2 system.width_u%s
+G a e
+G c Z s b [depuis_chaine adresses_ip 11 13 none]
+G c Z s b [vers_chaine adresses_ip 14 13 none]
+G c Z s b [correspond adresses_ip 18 13 none]
+G c Z s b [longueur_masque adresses_ip 23 13 none]
+G c Z b b [lire_octet adresses_ip 8 14 none]
+X 1 ada.ads
+16K9*Ada 20e8 15|1r6 1r30 2r6 2r30
+X 9 a-string.ads
+16K13*Strings 35e16 15|1r10 1r34 2w10 2r34
+33n24*Left{33E9} 15|55r26
+X 10 a-strfix.ads
+49K21*Fixed 1433e22 15|1w18 1r42
+1156V13*Trim{string} 15|55s17
+X 14 adresses_ip.ads
+4K9*Adresses_IP 25l5 25e16 15|4b14 85l5 85t16
+7M9*T_Adresse_IP 11r47 14r31 18r39 19r39 20r39 23r39 15|10r41 21r16 31r47
+. 33r24 45r31 46r21 47r21 48r21 49r21 51r25 52r33 64r39 65r39 66r39 74r39
+. 76r18
+11V13*Depuis_Chaine{7M9} 11>28 15|31b13 40l8 40t21
+11a28 S{string} 15|31b28 32r29 35r19 36r19 37r19 38r19
+14V13*Vers_Chaine{string} 14>26 15|45b13 59l8 59t19
+14m26 IP{7M9} 15|45b26 46r37 47r38 48r38 49r38
+18V13*Correspond{boolean} 18>25 19>25 20>25 15|64b13 69l8 69t18
+18m25 Destination{7M9} 15|64b25 68r15
+19m25 Reseau{7M9} 15|65b25 68r42
+20m25 Masque{7M9} 15|66b25 68r31 68r53
+23V13*Longueur_Masque{natural} 23>30 15|74b13 83l8 83t23
+23m30 Masque{7M9} 15|74b30 78r37
+X 15 adresses_ip.adb
+8U14 Lire_Octet 8b14 8>26 9=26 10<26 26l8 26t18 35s7 36s7 37s7 38s7
+8a26 S{string} 15r20 15r36 16r44 23r17 23r33
+9i26 Pos{positive} 11r36 15r13 15r39 16r47 17m10 17r17 19r22 23r10 23r36
+. 24m10 24r17
+10m26 Octet{14|7M9} 21m7
+11i7 Debut{positive} 19r28
+12i7 Val{integer} 16m10 16r17 20r22 21r30
+32i7 Pos{positive} 35m22 35r22 36m22 36r22 37m22 37r22 38m22 38r22
+33m7 O1{14|7M9} 35m27 39r14
+33m11 O2{14|7M9} 36m27 39r29
+33m15 O3{14|7M9} 37m27 39r44
+33m19 O4{14|7M9} 38m27 39r58
+46m7 O1{14|7M9} 58r19
+47m7 O2{14|7M9} 58r36
+48m7 O3{14|7M9} 58r53
+49m7 O4{14|7M9} 58r70
+51V16 Img{string} 51b16 51>21 56l11 56t14 58s14 58s31 58s48 58s65
+51m21 V{14|7M9} 52r53
+52a10 S{string} 55r23
+75i7 Compteur{natural} 79m10 79r22 82r14
+76m7 Bit_Test{14|7M9} 78r13 78r48 80m10 80r22
+

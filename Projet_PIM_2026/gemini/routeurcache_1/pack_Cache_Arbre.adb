@@ -11,7 +11,6 @@ package body Pack_Cache_Arbre is
       Cache.Compteur   := 0;
    end Initialiser;
 
-   -- Fonction interne pour calculer la longueur en bits d'un masque IP
    function Longueur_Masque (Masque : T_Adresse_IP) return Natural is
       L : Natural := 0;
    begin
@@ -19,13 +18,12 @@ package body Pack_Cache_Arbre is
          if (Masque and (T_Adresse_IP(2)**I)) /= 0 then
             L := L + 1;
          else
-            exit; -- Les masques ont tous leurs bits à 1 consécutifs à gauche
+            exit;
          end if;
       end loop;
       return L;
    end Longueur_Masque;
 
-   -- Procédure récursive pour trouver le nœud "victime" selon la politique choisie
    procedure Rechercher_Victime_Rec (Noeud : in T_Arbre; Politique : in T_Politique; Meilleur : in out T_Arbre) is
    begin
       if Noeud = null then
@@ -64,12 +62,10 @@ package body Pack_Cache_Arbre is
 
       Cache.Compteur := Cache.Compteur + 1;
 
-      -- La route par défaut (0.0.0.0/0) peut être stockée à la racine
       if Courant.Est_Route then
          Dernier_Match := Courant;
       end if;
 
-      -- On descend bit à bit du bit de poids fort (31) au bit de poids faible (0)
       for I in reverse 0 .. 31 loop
          Bit := T_Adresse_IP(2)**I;
          if (IP_Dest and Bit) /= 0 then
@@ -83,7 +79,7 @@ package body Pack_Cache_Arbre is
          end if;
 
          if Courant.Est_Route then
-            Dernier_Match := Courant; -- On mémorise pour obtenir le Longest Prefix Match
+            Dernier_Match := Courant;
          end if;
       end loop;
 
@@ -108,7 +104,6 @@ package body Pack_Cache_Arbre is
       end if;
 
       Courant := Cache.Racine;
-      -- On descend dans l'arbre uniquement sur la longueur du préfixe/masque
       for I in reverse (32 - L) .. 31 loop
          Bit := T_Adresse_IP(2)**I;
          if (Route.Destination and Bit) /= 0 then
@@ -120,7 +115,6 @@ package body Pack_Cache_Arbre is
          end if;
       end loop;
 
-      -- Gestion de l'éviction si c'est une nouvelle route et que le cache est plein
       if not Courant.Est_Route then
          if Cache.Taille_Act >= Cache.Taille_Max then
             declare
@@ -128,7 +122,7 @@ package body Pack_Cache_Arbre is
             begin
                Rechercher_Victime_Rec(Cache.Racine, Cache.Politique, Victime);
                if Victime /= null then
-                  Victime.Est_Route := False; -- On invalide l'ancienne route
+                  Victime.Est_Route := False;
                   Cache.Taille_Act  := Cache.Taille_Act - 1;
                end if;
             end;
@@ -161,17 +155,17 @@ package body Pack_Cache_Arbre is
       Afficher_Rec(Cache.Racine);
    end Afficher_Cache;
 
+   -- CORRECTION ICI : Remplacement de Libérer_Rec par Liberer_Rec
    procedure Vider (Cache : in out T_Cache) is
-      procedure Libérer_Rec (Noeud : in out T_Arbre) is
+      procedure Liberer_Rec (Noeud : in out T_Arbre) is
       begin
          if Noeud = null then return; end if;
-         Libérer_Rec(Noeud.Fils_Gauche);
-         Libérer_Rec(Noeud.Fils_Droit);
-         -- Code de désallocation Free(Noeud) à ajouter ici pour éviter les fuites de mémoire (exigence valgrind)
+         Liberer_Rec(Noeud.Fils_Gauche);
+         Liberer_Rec(Noeud.Fils_Droit);
          Noeud := null;
-      end Libérer_Rec;
+      end Liberer_Rec;
    begin
-      Libérer_Rec(Cache.Racine);
+      Liberer_Rec(Cache.Racine);
       Cache.Taille_Act := 0;
    end Vider;
 

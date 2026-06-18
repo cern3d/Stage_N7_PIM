@@ -83,4 +83,59 @@ package body Pack_Table_Routage is
       Table.Queue := null;
    end Vider;
 
+
+   procedure Chercher_Route_Pour_Cache (
+   Table             : in T_Table_Routage;
+   IP                : in T_Adresse_IP;
+   Interface_R       : out Unbounded_String;
+   Masque_Cache      : out T_Adresse_IP;
+   Destination_Cache : out T_Adresse_IP
+) is
+   --  /!\ ATTENTION : 
+   --  Remplace 'T_Lien' par TON type de pointeur de cellule (ex: T_Pointeur)
+   --  Remplace 'Table.Tete' par TON champ de record (ex: Table.Liste ou Table.Premier)
+   Courant        : T_Lien := Table.Tete; 
+   Route_Gagnante : T_Route;
+   Trouve         : Boolean := False;
+   Max_Masque     : T_Adresse_IP;
+begin
+   -- Étape 1 : Trouver la route correspondante (Masque le plus long)
+   while Courant /= null loop
+      -- /!\ Ajuste ici si tes cellules contiennent directement Destination/Masque 
+      -- au lieu d'un sous-record nommé 'Route' (ex: Courant.Masque au lieu de Courant.Route.Masque)
+      if (IP and Courant.Route.Masque) = Courant.Route.Destination then
+         if not Trouve or else Courant.Route.Masque > Route_Gagnante.Masque then
+            Route_Gagnante := Courant.Route;
+            Trouve := True;
+         end if;
+      end if;
+      Courant := Courant.Suivant; -- Ajuste si ton pointeur de cellule s'appelle 'Suiv' ou 'Svt'
+   end loop;
+
+   if Trouve then
+      Interface_R := Route_Gagnante.Interface_R;
+      Max_Masque  := Route_Gagnante.Masque;
+
+      -- Étape 2 (Section 1.4.2) : Trouver le masque le plus long pour cette destination
+      Courant := Table.Tete; -- On repart du début de la liste interne
+      while Courant /= null loop
+         if (Courant.Route.Destination and Route_Gagnante.Masque) = Route_Gagnante.Destination then
+            if Courant.Route.Masque > Max_Masque then
+               Max_Masque := Courant.Route.Masque;
+            end if;
+         end if;
+         Courant := Courant.Suivant;
+      end loop;
+
+      -- Calcul des éléments à insérer dans le cache
+      Masque_Cache      := Max_Masque;
+      Destination_Cache := IP and Max_Masque;
+   else
+      -- Sécurité si aucune route trouvée
+      Interface_R       := To_Unbounded_String("");
+      Masque_Cache      := 0;
+      Destination_Cache := 0;
+   end if;
+end Chercher_Route_Pour_Cache;
+
 end Pack_Table_Routage;
