@@ -22,14 +22,6 @@ package Pack_Table_Routage is
    -- Libère proprement la mémoire allouée dynamiquement [cite: 359]
    procedure Vider (Table : in out T_Table_Routage);
 
-   procedure Chercher_Route_Pour_Cache (
-   Table             : in T_Table_Routage;
-   IP                : in T_Adresse_IP;
-   Interface_R       : out Unbounded_String;
-   Masque_Cache      : out T_Adresse_IP;
-   Destination_Cache : out T_Adresse_IP
-);
-
 private
 
    type T_Cellule;
